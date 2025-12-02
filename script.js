@@ -128,3 +128,56 @@ function closeDuplicateModal(){ var modal=document.getElementById('duplicateModa
     window._btool_fetch_patched = true;
   }
 })();
+
+
+
+// === injected robust submit handler ===
+(function(){
+  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec";
+  const form = document.querySelector('form');
+  if (!form) return;
+
+  if (form._btool_submit_bound) return;
+  form._btool_submit_bound = true;
+
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+
+    const fd = new FormData(form);
+    const params = new URLSearchParams();
+    for (const pair of fd.entries()) params.append(pair[0], pair[1]);
+
+    fetch(WEBAPP_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: params.toString(),
+      redirect:'follow'
+    })
+    .then(async resp=>{
+      if (resp.redirected || resp.status==302 || resp.status==403){
+        showDuplicateModal("Unable to complete request. Please contact admin.","8129048805");
+        throw new Error("redirect");
+      }
+      const ct=resp.headers.get('content-type')||"";
+      if (!ct.includes("application/json")){
+        const t=await resp.text();
+        showDuplicateModal("Server returned unexpected response.","8129048805");
+        throw new Error("nonjson");
+      }
+      return resp.json();
+    })
+    .then(json=>{
+      if (json.duplicate){
+        showDuplicateModal(json.message,"8129048805");
+        return;
+      }
+      if (json.success){
+        if (json.sheetUrl) window.location=json.sheetUrl;
+        else alert("Thank you! Check email.");
+        return;
+      }
+      alert(json.message||"Error");
+    })
+    .catch(e=>console.error(e));
+  });
+})();
