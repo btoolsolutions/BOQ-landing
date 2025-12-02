@@ -17,22 +17,30 @@ function showSuccess() { successOverlay.classList.add('visible'); }
 function hideSuccess() { successOverlay.classList.remove('visible'); }
 closeSuccess && closeSuccess.addEventListener('click', hideSuccess);
 
+/*
+ * Fetches data from the Web App.
+ * Returns { ok: boolean, json: object }
+ */
 async function tryFetch(data) {
   try {
-    const res = await (function(){
-  // form-encoded POST to avoid CORS preflight
-  var __fd = new FormData();
-  try { for (var k in data) if (Object.prototype.hasOwnProperty.call(data,k)) __fd.append(k, data[k]); } catch(e) { /* fallback */ }
-  var __params = new URLSearchParams();
-  try { for (var pair of __fd.entries()) __params.append(pair[0], pair[1]); } catch(e){}
-  return fetch(WEB_APP_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-    body: __params.toString()
-  })
-})();
+    // form-encoded POST to avoid CORS preflight
+    const __fd = new FormData();
+    for (const k in data) if (Object.prototype.hasOwnProperty.call(data,k)) __fd.append(k, data[k]);
+    const __params = new URLSearchParams(__fd);
+    
+    const res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: __params.toString()
+    });
+    
     const text = await res.text();
-    try { const json = JSON.parse(text); return {ok: res.ok, json}; } catch (e) { return {ok: res.ok, json:null}; }
+    try { 
+      const json = JSON.parse(text); 
+      return { ok: res.ok, json }; 
+    } catch (e) { 
+      return { ok: res.ok, json:null }; 
+    }
   } catch (err) {
     throw err;
   }
@@ -66,13 +74,35 @@ form.addEventListener('submit', async (e) => {
 
   try {
     const result = await tryFetch(data);
-    if (result.ok) {
+
+    // --- NEW / MODIFIED DUPLICATE CHECK LOGIC ---
+    if (result.json && result.json.duplicate) {
+      // Use the message from the Apps Script response
+      const message = result.json.message || "An account with this email already exists. Please contact admin for support.";
+      const whatsappNumber = '8129048805'; // Hardcoded number from Apps Script/index.html
+      
+      // Update the modal with the specific warning required by the user
+      showDuplicateModal(message, whatsappNumber);
+      
+      // Stop execution and reset submission status
+      statusEl.textContent = 'Submission failed (duplicate account).';
+      return; 
+    }
+    
+    if (result.json && result.json.message) {
+      statusEl.textContent = result.json.message;
+    }
+    // --- END DUPLICATE CHECK LOGIC ---
+    
+    if (result.ok && result.json && result.json.success) {
       form.reset();
       showSuccess();
     } else {
+      // If result failed or wasn't a duplicate, use the old iframe fallback
       submitViaIframe(data);
     }
   } catch (err) {
+    // If fetch itself failed (network issue), use iframe fallback
     submitViaIframe(data);
   } finally {
     submitBtn.disabled = false;
@@ -81,103 +111,36 @@ form.addEventListener('submit', async (e) => {
 });
 
 
-
 /* bTool duplicate modal controller (Style 3) */
 function showDuplicateModal(message, whatsappNumber) {
   try {
     var modal = document.getElementById('duplicateModal');
     var msgEl = document.getElementById('btModalMessage');
     var waBtn = document.getElementById('btModalWhatsApp');
-    if (msgEl) msgEl.textContent = message || 'An account with this email already exists. Please contact admin for support.';
+    
+    // Set the specific message required by the user
+    const finalMessage = "An account with this email already exists. Please contact admin for support.";
+
+    if (msgEl) msgEl.textContent = finalMessage;
+    
     if (waBtn) {
       var waLink = whatsappNumber ? 'https://wa.me/' + whatsappNumber.replace(/[^0-9]/g,'') : 'https://wa.me/8129048805';
       waBtn.setAttribute('href', waLink);
     }
     if (modal) modal.style.display = 'flex';
+    
     // close handlers
     document.getElementById('btModalClose').onclick = function(){ closeDuplicateModal(); };
     document.getElementById('btModalOk').onclick = function(){ closeDuplicateModal(); };
     document.getElementById('btModalOverlay').onclick = function(){ closeDuplicateModal(); };
+    
+    // Also update the status message
+    const statusEl = document.getElementById('status');
+    if (statusEl) statusEl.textContent = finalMessage;
+
   } catch(e){ console.error(e); }
 }
 function closeDuplicateModal(){ var modal=document.getElementById('duplicateModal'); if(modal) modal.style.display='none'; }
 
-// If enhanced_submission.js defines a function handleSubmissionResponse, leave it; otherwise patch fetch handling globally
-(function(){
-  // Helper: monkey-patch window.fetch to intercept responses from webapp and show modal on duplicate:true
-  if (!window._btool_fetch_patched) {
-    var origFetch = window.fetch;
-    window.fetch = function(){ 
-      return origFetch.apply(this, arguments).then(function(resp){
-        try{
-          // clone response to read JSON safely
-          var cloned = resp.clone();
-          return cloned.json().then(function(json){
-            if (json && json.duplicate) {
-              // show our modal instead of letting form continue
-              var msg = json.message || 'An account with this email already exists. Please contact admin for support.';
-              showDuplicateModal(msg, '8129048805');
-              // return a rejected promise to indicate handled (so caller can stop)
-              return Promise.reject({handled:true, payload: json});
-            }
-            return resp;
-          }).catch(function(){ return resp; });
-        }catch(e){ return resp; }
-      });
-    };
-    window._btool_fetch_patched = true;
-  }
-})();
-
-
-
-// === injected robust submit handler ===
-(function(){
-  const WEBAPP_URL = "https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec";
-  const form = document.querySelector('form');
-  if (!form) return;
-
-  if (form._btool_submit_bound) return;
-  form._btool_submit_bound = true;
-
-  form.addEventListener('submit', function(ev){
-    ev.preventDefault();
-
-    const fd = new FormData(form);
-    const params = new URLSearchParams();
-    for (const pair of fd.entries()) params.append(pair[0], pair[1]);
-
-    fetch(WEBAPP_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: params.toString(),
-      redirect:'follow'
-    })
-    .then(async resp=>{
-      if (resp.redirected || resp.status==302 || resp.status==403){
-        showDuplicateModal("Unable to complete request. Please contact admin.","8129048805");
-        throw new Error("redirect");
-      }
-      const ct=resp.headers.get('content-type')||"";
-      if (!ct.includes("application/json")){
-        const t=await resp.text();
-        showDuplicateModal("Server returned unexpected response.","8129048805");
-        throw new Error("nonjson");
-      }
-      return resp.json();
-    })
-    .then(json=>{
-      if (json.duplicate){
-        showDuplicateModal(json.message,"8129048805");
-        return;
-      }
-      if (json.success){
-        if (json.sheetUrl) window.location=json.sheetUrl;
-        else alert("Thank you! Check email.");
-        return;
-      }
-      alert(json.message||"Error");
-    })
-    .catch(e=>console.error(e));
-  });
-})();
+// Remove the conflicting robust submit handler and monkey-patching logic from here.
+// The main event listener at the top now handles submission and duplicate checks.
