@@ -119,6 +119,8 @@ function showDuplicateModal(message, whatsappNumber) {
     var waBtn = document.getElementById('btModalWhatsApp');
     
     // Set the specific message required by the user
+    // The message is now hardcoded here for front-end consistency, 
+    // overriding the one from the Apps Script response.
     const finalMessage = "An account with this email already exists. Please contact admin for support.";
 
     if (msgEl) msgEl.textContent = finalMessage;
@@ -134,13 +136,10 @@ function showDuplicateModal(message, whatsappNumber) {
     document.getElementById('btModalOk').onclick = function(){ closeDuplicateModal(); };
     document.getElementById('btModalOverlay').onclick = function(){ closeDuplicateModal(); };
     
-    // Also update the status message
+    // CLEAR the status message below the button when the modal is shown
     const statusEl = document.getElementById('status');
-    if (statusEl) statusEl.textContent = finalMessage;
+    if (statusEl) statusEl.textContent = ''; // <--- Key Change: Clear the error message
 
   } catch(e){ console.error(e); }
 }
 function closeDuplicateModal(){ var modal=document.getElementById('duplicateModal'); if(modal) modal.style.display='none'; }
-
-// Remove the conflicting robust submit handler and monkey-patching logic from here.
-// The main event listener at the top now handles submission and duplicate checks.
