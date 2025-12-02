@@ -1,0 +1,58 @@
+// Google Apps Script Code.gs
+const SHEET_ID = '1jy0VFNXTXWr_Toc1iOMPUrmqLTBsqriCJWoNqCqEy6o';
+const SHEET_NAME = 'data landing';
+const HEADER_ROW = ['Timestamp', 'Company', 'Email', 'Phone', 'Company Location'];
+
+function doGet(e){
+  return ContentService.createTextOutput(JSON.stringify({status:'ok',message:'Web app reachable'})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function ensureSheetAndHeaders(ss) {
+  var sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.getRange(1,1,1,HEADER_ROW.length).setValues([HEADER_ROW]);
+    return sheet;
+  }
+  var firstRow = sheet.getRange(1,1,1,HEADER_ROW.length).getValues()[0];
+  var needsUpdate = false;
+  for (var i=0; i<HEADER_ROW.length; i++) {
+    if (!firstRow[i] || firstRow[i].toString().trim() === '') {
+      needsUpdate = true;
+      break;
+    }
+  }
+  if (needsUpdate) {
+    sheet.getRange(1,1,1,HEADER_ROW.length).setValues([HEADER_ROW]);
+  }
+  return sheet;
+}
+
+function doPost(e) {
+  try {
+    var body = {};
+    if (e.postData && e.postData.type && e.postData.type.indexOf('application/json') !== -1) {
+      body = JSON.parse(e.postData.contents || '{}');
+    } else {
+      body = e.parameter || {};
+    }
+    var email = (body.email || '').toString().trim().toLowerCase();
+    if(!(email.endsWith('@gmail.com') || email.endsWith('@googlemail.com'))) {
+      return ContentService.createTextOutput(JSON.stringify({status:'error', message:'Only Gmail addresses allowed.'})).setMimeType(ContentService.MimeType.JSON);
+    }
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+    var sheet = ensureSheetAndHeaders(ss);
+    var row = [
+      new Date(),
+      body.company || '',
+      body.email || '',
+      body.phone || '',
+      body.location || ''
+    ];
+    sheet.appendRow(row);
+    return ContentService.createTextOutput(JSON.stringify({status:'success'})).setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    console.error('doPost error: ' + err.toString());
+    return ContentService.createTextOutput(JSON.stringify({status:'error', message:err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}

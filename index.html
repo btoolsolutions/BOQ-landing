@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Try bTool BOQ Generator — Free for 24 Hours</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero"><div class="wrap">
+    <img src="logo.png" alt="bTool Logo" class="logo">
+    <h1>Try bTool BOQ Generator</h1>
+    <p class="sub">Free for 24 Hours</p>
+    <p class="lead">Professional Bill of Quantities generation for construction and engineering projects. Get instant access to the complete tool.</p>
+  </div></header>
+
+  <main class="main">
+    <section class="form-wrap">
+      <form id="demoForm" novalidate data-webapp="https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec">
+        <h3>Request Your Free Demo</h3>
+        <p class="muted">Fill in your details to get instant access to bTool BOQ Generator for 24 hours.</p>
+
+        <label>Company Name
+          <input name="company" type="text" required>
+        </label>
+
+        <label>Email Address
+          <input name="email" type="email" required pattern="^[a-zA-Z0-9._%+-]+@(gmail\.com|googlemail\.com)$" title="Please use a Gmail address (example@gmail.com)">
+        </label>
+
+        <label>Phone Number
+          <input name="phone" type="tel" required>
+        </label>
+
+        <label>Company Location
+          <input name="location" type="text">
+        </label>
+
+        <button type="submit" id="submitBtn">Get Instant Demo Access</button>
+
+        <p id="status" class="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="wrap"><p>Need help? Contact us on WhatsApp or email support.</p><small>© 2025 bTool BOQ Generator.</small></div></footer>
+
+  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+  <form id="fallbackForm" action="https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec" method="post" target="hidden_iframe" style="display:none;">
+    <input name="company"><input name="email"><input name="phone"><input name="location">
+  </form>
+
+  <a class="whatsapp-fab" href="https://wa.me/918129048805?text=Hi%20I%20want%20a%20demo%20for%20bTool%20BOQ%20Generator" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <img src="whatsapp-icon.png" alt="WhatsApp" class="wa-img">
+    <span class="wa-text">Chat on WhatsApp</span>
+  </a>
+
+  <div id="successOverlay" class="success-overlay" aria-hidden="true">
+    <div class="success-card" role="status" aria-live="polite">
+      <div class="tick">
+        <svg viewBox="0 0 52 52" class="tick-svg" aria-hidden="true">
+          <circle class="tick-circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="tick-check" fill="none" d="M14 27 l8 8 l16 -18" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3>Thank you — demo access requested!</h3>
+      <p>We've received your request. We'll send demo access details to your Gmail shortly.</p>
+      <button id="closeSuccess">Close</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+<script src="script.js"></script>
+<script src="enhanced_submission.js"></script>
+</body>
+</html>
