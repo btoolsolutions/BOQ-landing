@@ -19,11 +19,18 @@ closeSuccess && closeSuccess.addEventListener('click', hideSuccess);
 
 async function tryFetch(data) {
   try {
-    const res = await fetch(WEB_APP_URL, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(data)
-    });
+    const res = await (function(){
+  // form-encoded POST to avoid CORS preflight
+  var __fd = new FormData();
+  try { for (var k in data) if (Object.prototype.hasOwnProperty.call(data,k)) __fd.append(k, data[k]); } catch(e) { /* fallback */ }
+  var __params = new URLSearchParams();
+  try { for (var pair of __fd.entries()) __params.append(pair[0], pair[1]); } catch(e){}
+  return fetch(WEB_APP_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: __params.toString()
+  })
+})();
     const text = await res.text();
     try { const json = JSON.parse(text); return {ok: res.ok, json}; } catch (e) { return {ok: res.ok, json:null}; }
   } catch (err) {

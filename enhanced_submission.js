@@ -39,11 +39,18 @@
   }
 
   window.postFormToWebApp = function(webAppUrl, formDataObj) {
-    fetch(webAppUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formDataObj)
-    }).then(function(resp){ return resp.json(); })
+    (function(){
+  // form-encoded POST to avoid CORS preflight
+  var __fd = new FormData();
+  try { for (var k in formDataObj) if (Object.prototype.hasOwnProperty.call(formDataObj,k)) __fd.append(k, formDataObj[k]); } catch(e) { /* fallback */ }
+  var __params = new URLSearchParams();
+  try { for (var pair of __fd.entries()) __params.append(pair[0], pair[1]); } catch(e){}
+  return fetch(webAppUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: __params.toString()
+  })
+})().then(function(resp){ return resp.json(); })
     .then(function(data){
       if (!data) {
         showMessage('Unexpected server response. Please try again.', 'error');
