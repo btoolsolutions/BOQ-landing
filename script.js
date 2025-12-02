@@ -72,3 +72,52 @@ form.addEventListener('submit', async (e) => {
     submitBtn.textContent = 'Get Instant Demo Access';
   }
 });
+
+
+
+/* bTool duplicate modal controller (Style 3) */
+function showDuplicateModal(message, whatsappNumber) {
+  try {
+    var modal = document.getElementById('duplicateModal');
+    var msgEl = document.getElementById('btModalMessage');
+    var waBtn = document.getElementById('btModalWhatsApp');
+    if (msgEl) msgEl.textContent = message || 'An account with this email already exists. Please contact admin for support.';
+    if (waBtn) {
+      var waLink = whatsappNumber ? 'https://wa.me/' + whatsappNumber.replace(/[^0-9]/g,'') : 'https://wa.me/8129048805';
+      waBtn.setAttribute('href', waLink);
+    }
+    if (modal) modal.style.display = 'flex';
+    // close handlers
+    document.getElementById('btModalClose').onclick = function(){ closeDuplicateModal(); };
+    document.getElementById('btModalOk').onclick = function(){ closeDuplicateModal(); };
+    document.getElementById('btModalOverlay').onclick = function(){ closeDuplicateModal(); };
+  } catch(e){ console.error(e); }
+}
+function closeDuplicateModal(){ var modal=document.getElementById('duplicateModal'); if(modal) modal.style.display='none'; }
+
+// If enhanced_submission.js defines a function handleSubmissionResponse, leave it; otherwise patch fetch handling globally
+(function(){
+  // Helper: monkey-patch window.fetch to intercept responses from webapp and show modal on duplicate:true
+  if (!window._btool_fetch_patched) {
+    var origFetch = window.fetch;
+    window.fetch = function(){ 
+      return origFetch.apply(this, arguments).then(function(resp){
+        try{
+          // clone response to read JSON safely
+          var cloned = resp.clone();
+          return cloned.json().then(function(json){
+            if (json && json.duplicate) {
+              // show our modal instead of letting form continue
+              var msg = json.message || 'An account with this email already exists. Please contact admin for support.';
+              showDuplicateModal(msg, '8129048805');
+              // return a rejected promise to indicate handled (so caller can stop)
+              return Promise.reject({handled:true, payload: json});
+            }
+            return resp;
+          }).catch(function(){ return resp; });
+        }catch(e){ return resp; }
+      });
+    };
+    window._btool_fetch_patched = true;
+  }
+})();

@@ -18,7 +18,7 @@
     <section class="form-wrap">
       <form id="demoForm" novalidate data-webapp="https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec">
         <h3>Request Your Free Demo</h3>
-        <p class="muted">Enter your details to access the bTool BOQ Generator instantly.</p>
+        <p class="muted">Fill in your details to get instant access to bTool BOQ Generator for 24 hours.</p>
 
         <label>Company Name
           <input name="company" type="text" required>
@@ -72,5 +72,29 @@
   <script src="script.js"></script>
 <script src="script.js"></script>
 <script src="enhanced_submission.js"></script>
+
+<!-- Duplicate Modal - Style 3 (Professional SaaS) -->
+<div id="duplicateModal" class="bt-modal" aria-hidden="true" style="display:none;">
+  <div class="bt-modal-overlay" id="btModalOverlay"></div>
+  <div class="bt-modal-card" role="dialog" aria-modal="true" aria-labelledby="btModalTitle">
+    <button id="btModalClose" class="bt-modal-close" aria-label="Close">&times;</button>
+    <div class="bt-modal-header">
+      <img src="logo.png" alt="bTool" class="bt-modal-logo">
+    </div>
+    <div class="bt-modal-body">
+      <h2 id="btModalTitle">Account already exists</h2>
+      <p id="btModalMessage">An account with this email already exists. Please contact admin for support.</p>
+      <div class="bt-modal-actions">
+        <a id="btModalWhatsApp" class="bt-whatsapp-btn" href="#" target="_blank" rel="noopener">
+          <img src="whatsapp-icon.png" alt="WhatsApp" class="bt-wa-icon"> Chat on WhatsApp
+        </a>
+        <button id="btModalOk" class="bt-btn-primary">OK</button>
+      </div>
+    </div>
+    <div class="bt-modal-footer">Need help? Reply to the email or contact admin on WhatsApp.</div>
+  </div>
+</div>
+<!-- End Duplicate Modal -->
+
 </body>
 </html>

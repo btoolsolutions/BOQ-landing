@@ -30,3 +30,21 @@ button{margin-top:12px;width:100%;padding:10px 12px;background:var(--accent);col
 @keyframes check{to{stroke-dashoffset:0}}
 .success-card h3{margin:6px 0 6px}.success-card p{color:var(--muted);font-size:14px}.success-card button{margin-top:12px;padding:8px 12px;background:var(--success-green);color:white;border:0;border-radius:8px;cursor:pointer}
 @media(max-width:600px){.form-wrap{margin:18px}}
+
+
+
+/* bTool duplicate modal - Style 3 */
+.bt-modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9999; font-family: Arial, sans-serif; }
+.bt-modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
+.bt-modal-card { position: relative; background: #fff; width: 420px; max-width: 92%; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); padding: 20px 22px 18px; z-index: 10000; text-align: center; }
+.bt-modal-close { position: absolute; right: 12px; top: 10px; border: none; background: transparent; font-size: 26px; cursor: pointer; color:#333; }
+.bt-modal-logo { width:64px; height:64px; object-fit:contain; margin-bottom:8px; }
+.bt-modal-header { margin-bottom: 6px; }
+.bt-modal-body h2 { margin: 8px 0 6px; font-size: 20px; color: #0b2545; }
+.bt-modal-body p { margin: 6px 0 14px; color: #333; font-size: 14px; }
+.bt-modal-actions { display:flex; gap:10px; justify-content:center; align-items:center; margin-top:8px; flex-wrap:wrap; }
+.bt-whatsapp-btn { display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:8px 12px; border-radius:8px; background:#25D366; color:#fff; font-weight:600; }
+.bt-wa-icon { width:20px; height:20px; object-fit:contain; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.1)); }
+.bt-btn-primary { padding:8px 12px; border-radius:8px; border:none; background:#0b2545; color:#fff; font-weight:600; cursor:pointer; }
+.bt-modal-footer { margin-top:12px; font-size:12px; color:#666; }
+@media (max-width:480px){ .bt-modal-card{ padding:14px; } .bt-modal-logo{ width:48px;height:48px } }
