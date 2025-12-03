@@ -14,12 +14,18 @@ function isGmailAddress(email) {
 }
 
 function showSuccess() { 
-  if (successOverlay) successOverlay.classList.add('visible'); 
+  if (successOverlay) {
+    successOverlay.classList.add('visible');
+    successOverlay.setAttribute('aria-hidden','false');
+  }
 }
 function hideSuccess() { 
-  if (successOverlay) successOverlay.classList.remove('visible'); 
+  if (successOverlay) {
+    successOverlay.classList.remove('visible');
+    successOverlay.setAttribute('aria-hidden','true');
+  }
 }
-closeSuccess && closeSuccess.addEventListener('click', hideSuccess);
+if (closeSuccess) closeSuccess.addEventListener('click', hideSuccess);
 
 /*
  * Fetches data from the Web App.
@@ -51,6 +57,7 @@ async function tryFetch(data) {
 }
 
 function submitViaIframe(data) {
+  if (!fallbackForm) return;
   ['company','email','phone','location'].forEach(k => {
     const inp = fallbackForm.querySelector('[name="' + k + '"]');
     if (inp) inp.value = data[k] || '';
@@ -58,74 +65,89 @@ function submitViaIframe(data) {
   fallbackForm.submit();
   setTimeout(() => {
     showSuccess();
-    form.reset();
+    if (form) form.reset();
   }, 900);
 }
 
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  statusEl.textContent = '';
-  const data = Object.fromEntries(new FormData(form).entries());
-  const email = (data.email || '').trim();
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    const data = Object.fromEntries(new FormData(form).entries());
+    const email = (data.email || '').trim();
 
-  if (!form.checkValidity()) { form.reportValidity(); return; }
-  if (!isGmailAddress(email)) { statusEl.textContent = 'Please enter a valid Gmail address (e.g. example@gmail.com). Other domains are not allowed.'; return; }
-  if (!WEB_APP_URL) { statusEl.textContent = 'Web App URL missing.'; return; }
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    if (!isGmailAddress(email)) { statusEl.textContent = 'Please enter a valid Gmail address (e.g. example@gmail.com). Other domains are not allowed.'; return; }
+    if (!WEB_APP_URL) { statusEl.textContent = 'Web App URL missing.'; return; }
 
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Submitting...';
-  statusEl.textContent = 'Submitting...';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    statusEl.textContent = 'Submitting...';
 
-  try {
-    const result = await tryFetch(data);
+    try {
+      const result = await tryFetch(data);
 
-    // --- NEW / MODIFIED DUPLICATE CHECK LOGIC ---
-    if (result.json && result.json.duplicate) {
-      // Use the message from the Apps Script response
-      const message = result.json.message || "An account with this email already exists. Please contact admin for support.";
-      const whatsappNumber = '8129048805'; // Hardcoded number from Apps Script/index.html
+      // --- DUPLICATE CHECK LOGIC ---
+      if (result.json && result.json.duplicate) {
+        const message = result.json.message || "An account with this email already exists. Please contact admin for support.";
+        const whatsappNumber = '8129048805';
+        showDuplicateModal(message, whatsappNumber);
+        statusEl.textContent = 'Submission failed (duplicate account).';
+        return; 
+      }
       
-      // Update the modal with the specific warning required by the user
-      showDuplicateModal(message, whatsappNumber);
-      
-      // Stop execution and reset submission status
-      statusEl.textContent = 'Submission failed (duplicate account).';
-      return; 
-    }
-    
-    if (result.json && result.json.message) {
-      statusEl.textContent = result.json.message;
-    }
-    // --- END DUPLICATE CHECK LOGIC ---
-    
-    if (result.ok && result.json && result.json.success) {
-      form.reset();
-      showSuccess();
-    } else {
-      // If result failed or wasn't a duplicate, use the old iframe fallback
+      if (result.json && result.json.message) {
+        statusEl.textContent = result.json.message;
+      }
+
+      if (result.ok && result.json && result.json.success) {
+        form.reset();
+        showSuccess();
+      } else {
+        // fallback
+        submitViaIframe(data);
+      }
+    } catch (err) {
+      // fallback on network error
       submitViaIframe(data);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Get Instant Demo Access';
     }
-  } catch (err) {
-    // If fetch itself failed (network issue), use iframe fallback
-    submitViaIframe(data);
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Get Instant Demo Access';
-  }
-});
+  });
+}
 
+/* DUPLICATE MODAL CONTROLLER - defensive and robust */
+(function(){
+  // Document-level delegated click handler as a fallback
+  document.addEventListener('click', function(evt) {
+    // If user clicks the OK button or any element inside it
+    const ok = evt.target.closest && evt.target.closest('#btModalOk');
+    if (ok) {
+      console.log('Delegated handler: btModalOk clicked');
+      closeDuplicateModal();
+      return;
+    }
+    // Close if clicking overlay
+    const overlayClick = evt.target && evt.target.id === 'btModalOverlay';
+    if (overlayClick) {
+      console.log('Delegated handler: overlay clicked');
+      closeDuplicateModal();
+      return;
+    }
+  }, false);
+})();
 
-/* bTool duplicate modal controller (Style 3) */
 function showDuplicateModal(message, whatsappNumber) {
   try {
     var modal = document.getElementById('duplicateModal');
     var msgEl = document.getElementById('btModalMessage');
     var waBtn = document.getElementById('btModalWhatsApp');
     var okBtn = document.getElementById('btModalOk');
-    var closeBtn = document.getElementById('btModalClose'); // may be null if removed
-    var overlay = document.getElementById('btModalOverlay'); // may be null depending on markup
-    
-    // Use the front-end required message (keeps behaviour consistent)
+    var closeBtn = document.getElementById('btModalClose'); // may be null
+    var overlay = document.getElementById('btModalOverlay'); // may be null
+
     const finalMessage = "An account with this email already exists. Please contact admin for support.";
 
     if (msgEl) msgEl.textContent = finalMessage;
@@ -134,34 +156,67 @@ function showDuplicateModal(message, whatsappNumber) {
       var waLink = whatsappNumber ? 'https://wa.me/' + whatsappNumber.replace(/[^0-9]/g,'') : 'https://wa.me/8129048805';
       waBtn.setAttribute('href', waLink);
     }
-    if (modal) {
-      // prefer flex to centre content if CSS expects it
-      modal.style.display = 'flex';
+
+    if (!modal) {
+      console.warn('Duplicate modal element (#duplicateModal) not found.');
+      return;
     }
-    
-    // Remove any previously attached handlers to avoid duplicates
+
+    // Ensure button is not a submit button to avoid form submission behavior
     if (okBtn) {
-      okBtn.removeEventListener('click', closeDuplicateModal);
-      okBtn.addEventListener('click', closeDuplicateModal);
+      try { okBtn.setAttribute('type', 'button'); } catch(e){}
+      // remove previous listener safely by cloning node (cheap way)
+      var newOk = okBtn.cloneNode(true);
+      okBtn.parentNode.replaceChild(newOk, okBtn);
+      newOk.addEventListener('click', function onOkClick(e){
+        console.log('OK button clicked (direct handler).');
+        closeDuplicateModal();
+      });
+    } else {
+      // If okBtn not present, delegation will handle it (document click listener)
+      console.warn('OK button (#btModalOk) not found — using delegated handler as fallback.');
     }
+
+    // wire close button if it exists
     if (closeBtn) {
-      closeBtn.removeEventListener('click', closeDuplicateModal);
-      closeBtn.addEventListener('click', closeDuplicateModal);
+      try { closeBtn.setAttribute('type', 'button'); } catch(e){}
+      var newClose = closeBtn.cloneNode(true);
+      closeBtn.parentNode.replaceChild(newClose, closeBtn);
+      newClose.addEventListener('click', function(){ closeDuplicateModal(); });
     }
+
+    // ensure overlay is clickable
     if (overlay) {
-      overlay.removeEventListener('click', closeDuplicateModal);
-      overlay.addEventListener('click', closeDuplicateModal);
+      overlay.style.pointerEvents = 'auto';
+      // remove/replace to avoid duplicate listeners
+      var newOverlay = overlay.cloneNode(true);
+      overlay.parentNode.replaceChild(newOverlay, overlay);
+      newOverlay.addEventListener('click', function(){ closeDuplicateModal(); });
     }
 
-    // CLEAR the status message below the button when the modal is shown
-    if (statusEl) statusEl.textContent = ''; // <--- Key Change: Clear the error message
+    // make modal visible and accessible
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    // ensure it can receive pointer events
+    modal.style.pointerEvents = 'auto';
 
-  } catch(e){ 
-    // If something fails, log it but don't break the app
-    console.error('showDuplicateModal error:', e); 
+    // Clear form-level status message (if present)
+    if (statusEl) statusEl.textContent = '';
+
+  } catch(e){
+    console.error('showDuplicateModal error:', e);
   }
 }
-function closeDuplicateModal(){ 
-  var modal=document.getElementById('duplicateModal'); 
-  if(modal) modal.style.display='none'; 
+
+function closeDuplicateModal(){
+  try {
+    var modal=document.getElementById('duplicateModal');
+    if(modal) {
+      modal.style.display='none';
+      modal.setAttribute('aria-hidden','true');
+      console.log('Modal closed');
+    }
+  } catch(e){
+    console.error('closeDuplicateModal error:', e);
+  }
 }
