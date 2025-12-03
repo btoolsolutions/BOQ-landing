@@ -1,79 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>bTool BOQ Generator</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Try bTool BOQ Generator — Free for 24 Hours</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <header class="hero"><div class="wrap">
+    <img src="logo.png" alt="bTool Logo" class="logo">
+    <h1>Try bTool BOQ Generator</h1>
+    <p class="sub">Free for 24 Hours</p>
+    <p class="lead">Professional Bill of Quantities generation for construction and engineering projects. Get instant access to the complete tool.</p>
+  </div></header>
 
-  <!-- HEADER -->
-  <header class="header">
-    <img src="logo.png" alt="bTool" class="logo">
-  </header>
+  <main class="main">
+    <section class="form-wrap">
+      <form id="demoForm" novalidate data-webapp="https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec">
+        <h3>Request Your Free Demo</h3>
+        <p class="muted">Fill in your details to get instant access to bTool BOQ Generator for 24 hours.</p>
 
-  <!-- MAIN SECTION -->
-  <main class="container">
-    <h1 class="title">Generate BOQ Instantly</h1>
+        <label>Company Name
+          <input name="company" type="text" required>
+        </label>
 
-    <form id="leadForm">
-      <div class="form-group">
-        <label>Name</label>
-        <input type="text" name="name" required />
-      </div>
+        <label>Email Address
+          <input name="email" type="email" required pattern="^[a-zA-Z0-9._%+-]+@(gmail\.com|googlemail\.com)$" title="Please use a Gmail address (example@gmail.com)">
+        </label>
 
-      <div class="form-group">
-        <label>Company</label>
-        <input type="text" name="company" required />
-      </div>
+        <label>Phone Number
+          <input name="phone" type="tel" required>
+        </label>
 
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" name="email" required />
-      </div>
+        <label>Company Location
+          <input name="location" type="text">
+        </label>
 
-      <div class="form-group">
-        <label>Phone</label>
-        <input type="text" name="phone" required />
-      </div>
+        <button type="submit" id="submitBtn">Get Instant Demo Access</button>
 
-      <div class="form-group">
-        <label>Location</label>
-        <input type="text" name="location" required />
-      </div>
-
-      <button type="submit" id="submitBtn">Get BOQ Access</button>
-    </form>
+        <p id="status" class="status"></p>
+      </form>
+    </section>
   </main>
 
-  <!-- POPUP MODAL -->
-  <div id="btModal" class="bt-modal">
-    <div class="bt-modal-content">
+  <footer class="footer"><div class="wrap"><p>Need help? Contact us on WhatsApp or email support.</p><small>© 2025 bTool BOQ Generator.</small></div></footer>
 
-      <div class="bt-modal-header">
-        <img src="logo.png" alt="bTool" class="bt-modal-logo">
+  <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+  <form id="fallbackForm" action="https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec" method="post" target="hidden_iframe" style="display:none;">
+    <input name="company"><input name="email"><input name="phone"><input name="location">
+  </form>
+
+  <a class="whatsapp-fab" href="https://wa.me/918129048805?text=Hi%20I%20want%20a%20demo%20for%20bTool%20BOQ%20Generator" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <img src="whatsapp-icon.png" alt="WhatsApp" class="wa-img">
+    <span class="wa-text">Chat on WhatsApp</span>
+  </a>
+
+  <div id="successOverlay" class="success-overlay" aria-hidden="true">
+    <div class="success-card" role="status" aria-live="polite">
+      <div class="tick">
+        <svg viewBox="0 0 52 52" class="tick-svg" aria-hidden="true">
+          <circle class="tick-circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="tick-check" fill="none" d="M14 27 l8 8 l16 -18" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
       </div>
-
-      <div class="bt-modal-body">
-        <!-- Corrected title (Red + no cross icon) -->
-        <h2 id="btModalTitle">
-          <span style="color: red; font-weight: 600;">Account already exists</span>
-        </h2>
-
-        <p id="btModalMessage">
-          An account with this email already exists. Please contact admin for support.
-        </p>
-
-        <div class="bt-modal-actions">
-          <a id="btModalBtn" class="bt-modal-button" href="#">OK</a>
-        </div>
-      </div>
-
+      <h3>Thank you — demo access requested!</h3>
+      <p>We've received your request. We'll send demo access details to your Gmail shortly.</p>
+      <button id="closeSuccess">Close</button>
     </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js"></script> 
+
+<!-- DUPLICATE ACCOUNT MODAL -->
+<div id="duplicateModal" class="bt-modal" aria-hidden="true" style="display:none;">
+  <div class="bt-modal-overlay" id="btModalOverlay"></div>
+
+  <div class="bt-modal-card" role="dialog" aria-modal="true" aria-labelledby="btModalTitle">
+
+    <!-- ❌ CLOSE BUTTON REMOVED -->
+    <!-- <button id="btModalClose" class="bt-modal-close" aria-label="Close">&times;</button> -->
+
+    <div class="bt-modal-header">
+      <img src="logo.png" alt="bTool" class="bt-modal-logo">
+    </div>
+
+    <div class="bt-modal-body">
+
+      <!-- 🔴 TITLE UPDATED TO RED -->
+      <h2 id="btModalTitle" style="color:red; font-weight:600;">
+        Account already exists
+      </h2>
+
+      <p id="btModalMessage">
+        An account with this email already exists. Please contact admin for support.
+      </p>
+
+      <div class="bt-modal-actions">
+        <a id="btModalWhatsApp" class="bt-whatsapp-btn" href="#" target="_blank" rel="noopener">
+          <img src="whatsapp-icon.png" alt="WhatsApp" class="bt-wa-icon"> Chat on WhatsApp
+        </a>
+        <button id="btModalOk" class="bt-btn-primary">OK</button>
+      </div>
+    </div>
+
+    <div class="bt-modal-footer">
+      Need help? Reply to the email or contact admin on WhatsApp.
+    </div>
+
+  </div>
+</div>
+
 </body>
 </html>
