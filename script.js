@@ -13,8 +13,12 @@ function isGmailAddress(email) {
   return e.endsWith('@gmail.com') || e.endsWith('@googlemail.com');
 }
 
-function showSuccess() { successOverlay.classList.add('visible'); }
-function hideSuccess() { successOverlay.classList.remove('visible'); }
+function showSuccess() { 
+  if (successOverlay) successOverlay.classList.add('visible'); 
+}
+function hideSuccess() { 
+  if (successOverlay) successOverlay.classList.remove('visible'); 
+}
 closeSuccess && closeSuccess.addEventListener('click', hideSuccess);
 
 /*
@@ -117,10 +121,11 @@ function showDuplicateModal(message, whatsappNumber) {
     var modal = document.getElementById('duplicateModal');
     var msgEl = document.getElementById('btModalMessage');
     var waBtn = document.getElementById('btModalWhatsApp');
+    var okBtn = document.getElementById('btModalOk');
+    var closeBtn = document.getElementById('btModalClose'); // may be null if removed
+    var overlay = document.getElementById('btModalOverlay'); // may be null depending on markup
     
-    // Set the specific message required by the user
-    // The message is now hardcoded here for front-end consistency, 
-    // overriding the one from the Apps Script response.
+    // Use the front-end required message (keeps behaviour consistent)
     const finalMessage = "An account with this email already exists. Please contact admin for support.";
 
     if (msgEl) msgEl.textContent = finalMessage;
@@ -129,17 +134,34 @@ function showDuplicateModal(message, whatsappNumber) {
       var waLink = whatsappNumber ? 'https://wa.me/' + whatsappNumber.replace(/[^0-9]/g,'') : 'https://wa.me/8129048805';
       waBtn.setAttribute('href', waLink);
     }
-    if (modal) modal.style.display = 'flex';
+    if (modal) {
+      // prefer flex to centre content if CSS expects it
+      modal.style.display = 'flex';
+    }
     
-    // close handlers
-    document.getElementById('btModalClose').onclick = function(){ closeDuplicateModal(); };
-    document.getElementById('btModalOk').onclick = function(){ closeDuplicateModal(); };
-    document.getElementById('btModalOverlay').onclick = function(){ closeDuplicateModal(); };
-    
+    // Remove any previously attached handlers to avoid duplicates
+    if (okBtn) {
+      okBtn.removeEventListener('click', closeDuplicateModal);
+      okBtn.addEventListener('click', closeDuplicateModal);
+    }
+    if (closeBtn) {
+      closeBtn.removeEventListener('click', closeDuplicateModal);
+      closeBtn.addEventListener('click', closeDuplicateModal);
+    }
+    if (overlay) {
+      overlay.removeEventListener('click', closeDuplicateModal);
+      overlay.addEventListener('click', closeDuplicateModal);
+    }
+
     // CLEAR the status message below the button when the modal is shown
-    const statusEl = document.getElementById('status');
     if (statusEl) statusEl.textContent = ''; // <--- Key Change: Clear the error message
 
-  } catch(e){ console.error(e); }
+  } catch(e){ 
+    // If something fails, log it but don't break the app
+    console.error('showDuplicateModal error:', e); 
+  }
 }
-function closeDuplicateModal(){ var modal=document.getElementById('duplicateModal'); if(modal) modal.style.display='none'; }
+function closeDuplicateModal(){ 
+  var modal=document.getElementById('duplicateModal'); 
+  if(modal) modal.style.display='none'; 
+}
