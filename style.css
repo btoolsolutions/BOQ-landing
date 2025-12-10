@@ -1,54 +1,314 @@
 /* styles + whatsapp image and final tick size */
-:root{--maxw:900px;--accent:#1a73e8;--muted:#6b7280;--bg:#f8fafc;--whatsapp-green:#25D366;--success-green:#16a34a}
-*{box-sizing:border-box}
-body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;color:#111;background:var(--bg)}
-.wrap{max-width:var(--maxw);margin:0 auto;padding:18px}
-.hero{padding:40px 0 20px;text-align:center;background:linear-gradient(#fff,#f2f7fb)}
-.logo{max-width:140px;display:block;margin:0 auto 8px auto}
-.hero h1{font-size:26px;margin:0}
-.sub{color:var(--accent);font-weight:700;margin:6px 0}
-.lead{color:var(--muted);font-size:14px;margin-top:8px;margin-bottom:6px}
-.main{padding:20px 0}
-.form-wrap{display:block;max-width:360px;margin:8px auto 0;background:#fff;padding:16px;border-radius:6px;box-shadow:0 6px 18px rgba(17,24,39,0.06)}
-label{display:block;font-size:13px;color:#111;margin-top:10px}
-input,textarea{width:100%;padding:8px 10px;margin-top:6px;border:1px solid #e5e7eb;border-radius:4px;font-size:14px}
-button{margin-top:12px;width:100%;padding:10px 12px;background:var(--accent);color:white;border:0;border-radius:6px;font-weight:600;cursor:pointer}
-.status{margin-top:8px;font-size:13px;color:var(--muted)}
-.footer{padding:20px 0;text-align:center;color:var(--muted);font-size:13px;margin-top:30px}
-.whatsapp-fab{position:fixed;right:18px;bottom:18px;display:flex;align-items:center;gap:10px;padding:8px 12px;background:linear-gradient(90deg,var(--whatsapp-green),#1ebe57);color:white;text-decoration:none;border-radius:999px;box-shadow:0 12px 30px rgba(16,185,129,0.18);z-index:9999;font-weight:700;font-size:14px}
-.whatsapp-fab .wa-img{width:36px;height:36px;display:block;border-radius:50%}
-.whatsapp-fab .wa-text{display:inline-block;line-height:1}
-@media(max-width:420px){.whatsapp-fab .wa-text{display:none}}
-.success-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6);z-index:10000;opacity:0;pointer-events:none;transition:opacity 240ms ease}
-.success-overlay.visible{opacity:1;pointer-events:auto}
-.success-card{background:#fff;padding:18px;border-radius:12px;text-align:center;width:min(420px,92%);box-shadow:0 20px 50px rgba(2,6,23,0.4)}
-.tick{width:56px;height:56px;margin:0 auto 12px}
-.tick-svg{width:100%;height:100%;display:block}
-.tick-circle{stroke:rgba(22,163,74,0.15);stroke-width:4;stroke-dasharray:170;stroke-dashoffset:170;animation:circle 600ms ease forwards;transform-origin:center center}
-.tick-check{stroke:var(--success-green);stroke-width:4;stroke-dasharray:50;stroke-dashoffset:50;stroke-linecap:round;animation:check 500ms 280ms ease forwards}
-@keyframes circle{to{stroke-dashoffset:0}}
-@keyframes check{to{stroke-dashoffset:0}}
-.success-card h3{margin:6px 0 6px}.success-card p{color:var(--muted);font-size:14px}.success-card button{margin-top:12px;padding:8px 12px;background:var(--success-green);color:white;border:0;border-radius:8px;cursor:pointer}
-@media(max-width:600px){.form-wrap{margin:18px}}
+:root {
+  --maxw: 900px;
+  --accent: #1a73e8;
+  --muted: #6b7280;
+  --bg: #f8fafc;
+  --whatsapp-green: #25D366;
+  --success-green: #16a34a;
+}
 
+* { box-sizing: border-box; }
 
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial;
+  margin: 0;
+  color: #111;
+  background: var(--bg);
+}
 
-/* bTool duplicate modal - Style 3 */
-.bt-modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 9999; font-family: Arial, sans-serif; }
-.bt-modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
-.bt-modal-card { position: relative; background: #fff; width: 420px; max-width: 92%; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); padding: 20px 22px 18px; z-index: 10000; text-align: center; }
-.bt-modal-close { position: absolute; right: 12px; top: 10px; border: none; background: transparent; font-size: 26px; cursor: pointer; color:#333; }
-.bt-modal-logo { width:64px; height:64px; object-fit:contain; margin-bottom:8px; }
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 18px; }
+
+.hero {
+  padding: 40px 0 20px;
+  text-align: center;
+  background: linear-gradient(#fff, #f2f7fb);
+}
+
+.logo {
+  max-width: 140px;
+  display: block;
+  margin: 0 auto 8px auto;
+}
+
+.hero h1 { font-size: 26px; margin: 0; }
+.sub { color: var(--accent); font-weight: 700; margin: 6px 0; }
+.lead { color: var(--muted); font-size: 14px; margin-top: 8px; margin-bottom: 6px; }
+
+.main { padding: 20px 0; }
+
+.form-wrap {
+  display: block;
+  max-width: 360px;
+  margin: 8px auto 0;
+  background: #fff;
+  padding: 16px;
+  border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  color: #111;
+  margin-top: 10px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 8px 10px;
+  margin-top: 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+button {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--accent);
+  color: white;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.status {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.footer {
+  padding: 20px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 30px;
+}
+
+/* WhatsApp FAB */
+.whatsapp-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, var(--whatsapp-green), #1ebe57);
+  color: white;
+  text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 12px 30px rgba(16,185,129,0.18);
+  z-index: 9999;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.whatsapp-fab .wa-img {
+  width: 36px;
+  height: 36px;
+  display: block;
+  border-radius: 50%;
+}
+
+.whatsapp-fab .wa-text { display: inline-block; line-height: 1; }
+
+@media (max-width: 420px) {
+  .whatsapp-fab .wa-text { display: none; }
+}
+
+/* Success Overlay */
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,0.6);
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms ease;
+}
+
+.success-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.success-card {
+  background: #fff;
+  padding: 18px;
+  border-radius: 12px;
+  text-align: center;
+  width: min(420px, 92%);
+  box-shadow: 0 20px 50px rgba(2,6,23,0.4);
+}
+
+.tick {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 12px;
+}
+
+.tick-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.tick-circle {
+  stroke: rgba(22,163,74,0.15);
+  stroke-width: 4;
+  stroke-dasharray: 170;
+  stroke-dashoffset: 170;
+  animation: circle 600ms ease forwards;
+  transform-origin: center center;
+}
+
+.tick-check {
+  stroke: var(--success-green);
+  stroke-width: 4;
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  stroke-linecap: round;
+  animation: check 500ms 280ms ease forwards;
+}
+
+@keyframes circle { to { stroke-dashoffset: 0; } }
+@keyframes check { to { stroke-dashoffset: 0; } }
+
+.success-card h3 { margin: 6px 0 6px; }
+.success-card p { color: var(--muted); font-size: 14px; }
+.success-card button {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: var(--success-green);
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .form-wrap { margin: 18px; }
+}
+
+/* Duplicate Modal */
+.bt-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: Arial, sans-serif;
+}
+
+.bt-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+}
+
+.bt-modal-card {
+  position: relative;
+  background: #fff;
+  width: 420px;
+  max-width: 92%;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  padding: 20px 22px 18px;
+  z-index: 10000;
+  text-align: center;
+}
+
+.bt-modal-close {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  cursor: pointer;
+  color: #333;
+}
+
+.bt-modal-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
 .bt-modal-header { margin-bottom: 6px; }
-.bt-modal-body h2 { margin: 8px 0 6px; font-size: 20px; color: #0b2545; }
-.bt-modal-body p { margin: 6px 0 14px; color: #333; font-size: 14px; }
-.bt-modal-actions { display:flex; gap:10px; justify-content:center; align-items:center; margin-top:8px; flex-wrap:wrap; }
-.bt-whatsapp-btn { display:inline-flex; align-items:center; gap:8px; text-decoration:none; padding:8px 12px; border-radius:8px; background:#25D366; color:#fff; font-weight:600; }
-.bt-wa-icon { width:20px; height:20px; object-fit:contain; filter: drop-shadow(0 1px 0 rgba(0,0,0,0.1)); }
-.bt-btn-primary { padding:8px 12px; border-radius:8px; border:none; background:#0b2545; color:#fff; font-weight:600; cursor:pointer; }
-.bt-modal-footer { margin-top:12px; font-size:12px; color:#666; }
-@media (max-width:480px){ .bt-modal-card{ padding:14px; } .bt-modal-logo{ width:48px;height:48px } }
-/* --- bTool inline submit spinner (add at end of style.css) --- */
+
+.bt-modal-body h2 {
+  margin: 8px 0 6px;
+  font-size: 20px;
+  color: #0b2545;
+}
+
+.bt-modal-body p {
+  margin: 6px 0 14px;
+  color: #333;
+  font-size: 14px;
+}
+
+.bt-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.bt-whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #25D366;
+  color: #fff;
+  font-weight: 600;
+}
+
+.bt-wa-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,0.1));
+}
+
+.bt-btn-primary {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #0b2545;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bt-modal-footer {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #666;
+}
+
+@media (max-width: 480px) {
+  .bt-modal-card { padding: 14px; }
+  .bt-modal-logo { width: 48px; height: 48px; }
+}
+
+/* --- bTool inline submit spinner --- */
 .btn-spinner {
   display: inline-block;
   width: 18px;
@@ -57,17 +317,28 @@ button{margin-top:12px;width:100%;padding:10px 12px;background:var(--accent);col
   vertical-align: middle;
   border-radius: 50%;
   border: 2px solid rgba(255,255,255,0.18);
-  border-top-color: #fff;
+  border-top-color: currentColor; /* improved visibility */
   animation: bt-spin 0.9s linear infinite;
 }
+
 @keyframes bt-spin { to { transform: rotate(360deg); } }
 
-/* when button contains spinner, make text slightly dim */
 button .btn-text { vertical-align: middle; }
-button[disabled] .btn-text { opacity: 0.9; }
+button[disabled] { cursor: not-allowed; opacity: 0.95; }
+button[disabled] .btn-text { opacity: 0.7; }
 
-/* small screen tweak so spinner doesn't wrap */
-@media (max-width:420px) {
-  .btn-spinner { margin-left: 8px; width:16px; height:16px; border-width:2px; }
+/* reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner { animation: none !important; }
+  .tick-circle, .tick-check { animation: none !important; stroke-dashoffset: 0; }
 }
 
+/* small screen tweak */
+@media (max-width: 420px) {
+  .btn-spinner {
+    margin-left: 8px;
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+  }
+}
