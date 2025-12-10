@@ -1,189 +1,237 @@
-// script.js (updated)
-// Uses the webapp URL you provided and logs response details for debugging.
+// script.js (updated: restored duplicate modal rendering logic)
+// Web app URL (your provided exec URL)
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec';
 
-document.addEventListener("DOMContentLoaded", function () {
-  // <-- Update only this constant if webapp URL ever changes -->
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec";
+const form = document.getElementById('demoForm');
+const fallbackForm = document.getElementById('fallbackForm');
+const statusEl = document.getElementById('status');
+const submitBtn = document.getElementById('submitBtn');
+const successOverlay = document.getElementById('successOverlay');
+const closeSuccess = document.getElementById('closeSuccess');
 
-  const form = document.getElementById("demoForm");
-  const statusEl = document.getElementById("status");
-  const submitBtn = document.getElementById("submitBtn");
+function isGmailAddress(email) {
+  if(!email) return false;
+  const e = email.trim().toLowerCase();
+  return e.endsWith('@gmail.com') || e.endsWith('@googlemail.com');
+}
 
-  // Small helper: perform fetch with logging and better error handling
-  async function tryFetch(formData) {
-    try {
-      const res = await fetch(WEB_APP_URL, {
-        method: "POST",
-        body: formData,
-        mode: "cors",
-        credentials: "omit",
-        headers: {
-          // don't set Content-Type here for FormData (browser sets it)
-        },
-      });
+function showSuccess() { 
+  if (successOverlay) {
+    successOverlay.classList.add('visible');
+    successOverlay.setAttribute('aria-hidden','false');
+  }
+}
+function hideSuccess() { 
+  if (successOverlay) {
+    successOverlay.classList.remove('visible');
+    successOverlay.setAttribute('aria-hidden','true');
+  }
+}
+if (closeSuccess) closeSuccess.addEventListener('click', hideSuccess);
 
-      // Log status for debugging
-      console.log("fetch response status:", res.status, res.statusText);
-
-      // Try get text & JSON (safe)
-      const text = await res.text().catch(() => "");
-      let json = null;
-      try { json = text ? JSON.parse(text) : null; } catch (err) {
-        // not JSON
-      }
-      console.log("fetch response body (text):", text);
-      if (!res.ok) {
-        // Return an object representing failure so caller can fallback
-        return { ok: false, status: res.status, statusText: res.statusText, text, json };
-      }
-      return { ok: true, status: res.status, text, json };
-    } catch (err) {
-      // Network-level error (CORS preflight, DNS, offline, etc.)
-      console.error("fetch failed:", err);
-      return { ok: false, fetchError: true, error: err };
+/*
+ * Fetches data from the Web App.
+ * Returns { ok: boolean, json: object }
+ */
+async function tryFetch(data) {
+  try {
+    // form-encoded POST to avoid CORS preflight
+    const __fd = new FormData();
+    for (const k in data) if (Object.prototype.hasOwnProperty.call(data,k)) __fd.append(k, data[k]);
+    const __params = new URLSearchParams(__fd);
+    
+    const res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: __params.toString()
+    });
+    
+    const text = await res.text();
+    try { 
+      const json = JSON.parse(text); 
+      return { ok: res.ok, json }; 
+    } catch (e) { 
+      return { ok: res.ok, json:null }; 
     }
+  } catch (err) {
+    throw err;
   }
+}
 
-  // Fallback submission via hidden iframe (keeps current behavior)
-  // This expects a <form id="fallbackForm" target="hidden_iframe"> in index.html
-  function submitViaIframe(obj) {
-    // create and post a form if fallbackForm isn't present
-    const fallback = document.getElementById("fallbackForm");
-    if (fallback) {
-      // populate fallback inputs if they exist, else just submit (we assume fallback form has matching input names)
-      // create temporary hidden inputs for any keys missing
-      const created = [];
-      Object.keys(obj).forEach((k) => {
-        let input = fallback.querySelector(`[name="${k}"]`);
-        if (!input) {
-          input = document.createElement("input");
-          input.type = "hidden";
-          input.name = k;
-          input.value = obj[k];
-          fallback.appendChild(input);
-          created.push(input);
-        } else {
-          input.value = obj[k];
-        }
-      });
-      fallback.submit();
-      // cleanup created inputs after short delay
-      setTimeout(() => created.forEach(i => i.remove()), 3000);
-    } else {
-      // If no fallback form exists, throw so caller can show message
-      throw new Error("No fallbackForm found in page for iframe fallback.");
-    }
-  }
+function submitViaIframe(data) {
+  if (!fallbackForm) return;
+  ['company','email','phone','location'].forEach(k => {
+    const inp = fallbackForm.querySelector('[name="' + k + '"]');
+    if (inp) inp.value = data[k] || '';
+  });
+  fallbackForm.submit();
+  setTimeout(() => {
+    showSuccess();
+    if (form) form.reset();
+  }, 900);
+}
 
-  // Gmail address validation
-  function isGmailAddress(email) {
-    return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
-  }
-
-  form.addEventListener("submit", async (e) => {
+if (form) {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    statusEl.textContent = "";
+    if (!statusEl) return;
+    statusEl.textContent = '';
+    const data = Object.fromEntries(new FormData(form).entries());
+    const email = (data.email || '').trim();
 
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+    if (!form.checkValidity()) { form.reportValidity(); return; }
+    if (!isGmailAddress(email)) { statusEl.textContent = 'Please enter a valid Gmail address (e.g. example@gmail.com). Other domains are not allowed.'; return; }
+    if (!WEB_APP_URL) { statusEl.textContent = 'Web App URL missing.'; return; }
 
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
-    }
-
-    if (!isGmailAddress(data.email)) {
-      alert("Please enter a valid Gmail address (example@gmail.com)");
-      return;
-    }
-
-    // Show loading state on the button
+    // show loading state
     submitBtn.disabled = true;
-    statusEl.textContent = "Submitting, please wait...";
-
-    const _origBtnHTML = submitBtn.innerHTML || submitBtn.textContent || "Get Instant Demo Access";
-    submitBtn.innerHTML =
-      '<span class="btn-text">Submitting, please wait</span><span class="btn-spinner" aria-hidden="true"></span>';
-    submitBtn.setAttribute("aria-live", "polite");
-    submitBtn.setAttribute("aria-busy", "true");
+    submitBtn.innerHTML = '<span class="btn-text">Submitting, please wait</span><span class="btn-spinner" aria-hidden="true"></span>';
+    statusEl.textContent = 'Submitting, please wait...';
 
     try {
-      // Try fetch (with logging)
-      const result = await tryFetch(formData);
+      const result = await tryFetch(data);
 
-      if (result.ok) {
-        // If server returned JSON use that, otherwise try text
-        const resp = result.json || (result.text ? (function(){ try { return JSON.parse(result.text); } catch(e){ return null } })() : null);
-
-        // handle server responses (keep your existing statuses)
-        if (resp && resp.status === "success") {
-          document.getElementById("successPopup").style.display = "flex";
-          form.reset();
-        } else if (resp && resp.status === "exists") {
-          document.getElementById("duplicatePopup").style.display = "flex";
-        } else {
-          // If server returned 200 but body isn't as expected, show text or success conservatively
-          console.warn("Unexpected success response:", resp, result.text);
-          // If response contains helpful text, show alert; else assume success
-          if (resp && resp.message) {
-            alert(resp.message);
-          } else {
-            document.getElementById("successPopup").style.display = "flex";
-            form.reset();
-          }
-        }
-      } else {
-        // Non-OK response (404, 403, 500, etc.) or fetch-level error
-        console.warn("Non-OK fetch result, falling back. details:", result);
-
-        // If 404 specifically, log and attempt fallback
-        if (result.status === 404) {
-          console.error("Server returned 404. Web app exec URL may be incorrect or deployment missing.");
-        }
-
-        statusEl.textContent = 'Network error detected — using fallback submission...';
-
-        // attempt iframe fallback with raw data object
-        try {
-          submitViaIframe(data);
-        } catch (fbErr) {
-          console.error("Iframe fallback failed:", fbErr);
-          alert("Network error. Please try again later.");
-        }
+      // --- DUPLICATE CHECK LOGIC ---
+      if (result.json && result.json.duplicate) {
+        const message = result.json.message || "An account with this email already exists. Please contact admin for support.";
+        const whatsappNumber = result.json.whatsapp || '8129048805';
+        showDuplicateModal(message, whatsappNumber);
+        statusEl.textContent = 'Submission failed (duplicate account).';
+        return; 
       }
-    } catch (error) {
-      console.error("Submission error:", error);
-      statusEl.textContent = "Network error. Please try again later.";
+      
+      if (result.json && result.json.message) {
+        statusEl.textContent = result.json.message;
+      }
+
+      if (result.ok && result.json && result.json.success) {
+        form.reset();
+        showSuccess();
+      } else {
+        // fallback to iframe submission to avoid CORS issues
+        submitViaIframe(data);
+      }
+    } catch (err) {
+      // fallback on network error
+      console.error('Submission fetch failed, using iframe fallback:', err);
+      submitViaIframe(data);
     } finally {
       // restore button
       submitBtn.disabled = false;
-      submitBtn.removeAttribute("aria-busy");
-      submitBtn.removeAttribute("aria-live");
-      if (typeof _origBtnHTML !== "undefined") {
-        submitBtn.innerHTML = _origBtnHTML;
-      } else {
-        submitBtn.textContent = "Get Instant Demo Access";
-      }
+      submitBtn.textContent = 'Get Instant Demo Access';
     }
   });
+}
 
-  // Close popups
-  document.querySelectorAll(".close-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      this.closest(".popup").style.display = "none";
-    });
-  });
+/* DUPLICATE MODAL CONTROLLER - defensive and robust */
+(function(){
+  // Document-level delegated click handler as a fallback
+  document.addEventListener('click', function(evt) {
+    // If user clicks the OK button or any element inside it
+    const ok = evt.target.closest && evt.target.closest('#btModalOk');
+    if (ok) {
+      closeDuplicateModal();
+      return;
+    }
+    // Close if clicking overlay
+    const overlayClick = evt.target && evt.target.id === 'btModalOverlay';
+    if (overlayClick) {
+      closeDuplicateModal();
+      return;
+    }
+  }, false);
+})();
 
-  // WhatsApp floating button
-  const waMessage =
-    "Hello, I would like to get the 24-hour free demo access of bTool ERP.";
-  const waBtn = document.getElementById("whatsappBtn");
-  if (waBtn) {
-    waBtn.addEventListener("click", function () {
-      window.open(
-        "https://wa.me/918129048805?text=" + encodeURIComponent(waMessage),
-        "_blank"
-      );
-    });
+function closeDuplicateModal() {
+  try {
+    var modal = document.getElementById('duplicateModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden','true');
+  } catch(e) {
+    console.error('closeDuplicateModal error:', e);
   }
-});
+}
+
+/* === RESTORED showDuplicateModal ===
+   This version renders any HTML the server returned in message,
+   or falls back to a readable HTML fragment with WhatsApp link.
+*/
+function showDuplicateModal(message, whatsappNumber) {
+  try {
+    var modal = document.getElementById('duplicateModal');
+    var msgEl = document.getElementById('btModalMessage');
+    var waBtn = document.getElementById('btModalWhatsApp');
+    var okBtn = document.getElementById('btModalOk');
+    var closeBtn = document.getElementById('btModalClose'); // may be null
+    var overlay = document.getElementById('btModalOverlay'); // may be null
+
+    // If the server supplied an HTML message for duplicates, use it; otherwise
+    // fall back to the standard message (same wording as enhanced_submission.js)
+    var finalHtml;
+    if (message && message.trim()) {
+      // If server sent HTML, prefer it; otherwise escape plain text
+      // Heuristic: if contains angle-brackets treat as HTML
+      if (/<[a-z][\s\S]*>/i.test(message)) {
+        finalHtml = message;
+      } else {
+        // simple escape of HTML characters
+        finalHtml = message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+      }
+    } else {
+      finalHtml = '<strong>It seems you already have an active account with this email.</strong><br>';
+      finalHtml += 'If you need help, contact us on WhatsApp: <a href="https://wa.me/8129048805" target="_blank">+91 8129048805</a>';
+    }
+
+    if (msgEl) {
+      // set innerHTML because enhanced_submission.js used HTML in the message
+      msgEl.innerHTML = finalHtml;
+    }
+
+    if (waBtn) {
+      var waLink = whatsappNumber ? 'https://wa.me/' + whatsappNumber.replace(/[^0-9]/g,'') : 'https://wa.me/8129048805';
+      waBtn.setAttribute('href', waLink);
+    }
+
+    if (!modal) {
+      console.warn('Duplicate modal element (#duplicateModal) not found.');
+      return;
+    }
+
+    // Ensure primary OK button is a plain button and has a single handler
+    if (okBtn) {
+      try { okBtn.setAttribute('type', 'button'); } catch(e){}
+      var newOk = okBtn.cloneNode(true);
+      okBtn.parentNode.replaceChild(newOk, okBtn);
+      newOk.addEventListener('click', function onOkClick(e){
+        closeDuplicateModal();
+      });
+    }
+
+    // wire close button if it exists
+    if (closeBtn) {
+      try { closeBtn.setAttribute('type', 'button'); } catch(e){}
+      var newClose = closeBtn.cloneNode(true);
+      closeBtn.parentNode.replaceChild(newClose, closeBtn);
+      newClose.addEventListener('click', function(){ closeDuplicateModal(); });
+    }
+
+    // ensure overlay is clickable
+    if (overlay) {
+      overlay.style.pointerEvents = 'auto';
+      var newOverlay = overlay.cloneNode(true);
+      overlay.parentNode.replaceChild(newOverlay, overlay);
+      newOverlay.addEventListener('click', function(){ closeDuplicateModal(); });
+    }
+
+    // make modal visible and accessible
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+    modal.style.pointerEvents = 'auto';
+
+    if (statusEl) statusEl.textContent = '';
+
+  } catch(e){
+    console.error('showDuplicateModal error:', e);
+  }
+}
