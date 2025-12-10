@@ -1,5 +1,3 @@
-// script.js (updated: restored duplicate modal rendering logic)
-// Web app URL (your provided exec URL)
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz9LFcmtQ-blFWgPJTu5s3fc7Yxl8_cn1lOqfyaV8BNvfMwmWJrGFNXOug-fp5F3TsU6g/exec';
 
 const form = document.getElementById('demoForm');
@@ -8,6 +6,7 @@ const statusEl = document.getElementById('status');
 const submitBtn = document.getElementById('submitBtn');
 const successOverlay = document.getElementById('successOverlay');
 const closeSuccess = document.getElementById('closeSuccess');
+const loadingBox = document.getElementById('loadingBox'); // <--- ADDED THIS
 
 function isGmailAddress(email) {
   if(!email) return false;
@@ -83,10 +82,10 @@ if (form) {
     if (!isGmailAddress(email)) { statusEl.textContent = 'Please enter a valid Gmail address (e.g. example@gmail.com). Other domains are not allowed.'; return; }
     if (!WEB_APP_URL) { statusEl.textContent = 'Web App URL missing.'; return; }
 
-    // show loading state
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="btn-text">Submitting, please wait</span><span class="btn-spinner" aria-hidden="true"></span>';
-    statusEl.textContent = 'Submitting, please wait...';
+    submitBtn.textContent = 'Submitting...';
+    // Show spinner
+    if (loadingBox) loadingBox.style.display = 'flex'; // <--- ADDED THIS
 
     try {
       const result = await tryFetch(data);
@@ -94,7 +93,7 @@ if (form) {
       // --- DUPLICATE CHECK LOGIC ---
       if (result.json && result.json.duplicate) {
         const message = result.json.message || "An account with this email already exists. Please contact admin for support.";
-        const whatsappNumber = result.json.whatsapp || '8129048805';
+        const whatsappNumber = '8129048805';
         showDuplicateModal(message, whatsappNumber);
         statusEl.textContent = 'Submission failed (duplicate account).';
         return; 
@@ -108,17 +107,17 @@ if (form) {
         form.reset();
         showSuccess();
       } else {
-        // fallback to iframe submission to avoid CORS issues
+        // fallback
         submitViaIframe(data);
       }
     } catch (err) {
       // fallback on network error
-      console.error('Submission fetch failed, using iframe fallback:', err);
       submitViaIframe(data);
     } finally {
-      // restore button
       submitBtn.disabled = false;
       submitBtn.textContent = 'Get Instant Demo Access';
+      // Hide spinner
+      if (loadingBox) loadingBox.style.display = 'none'; // <--- ADDED THIS
     }
   });
 }
@@ -130,33 +129,20 @@ if (form) {
     // If user clicks the OK button or any element inside it
     const ok = evt.target.closest && evt.target.closest('#btModalOk');
     if (ok) {
+      console.log('Delegated handler: btModalOk clicked');
       closeDuplicateModal();
       return;
     }
     // Close if clicking overlay
     const overlayClick = evt.target && evt.target.id === 'btModalOverlay';
     if (overlayClick) {
+      console.log('Delegated handler: overlay clicked');
       closeDuplicateModal();
       return;
     }
   }, false);
 })();
 
-function closeDuplicateModal() {
-  try {
-    var modal = document.getElementById('duplicateModal');
-    if (!modal) return;
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden','true');
-  } catch(e) {
-    console.error('closeDuplicateModal error:', e);
-  }
-}
-
-/* === RESTORED showDuplicateModal ===
-   This version renders any HTML the server returned in message,
-   or falls back to a readable HTML fragment with WhatsApp link.
-*/
 function showDuplicateModal(message, whatsappNumber) {
   try {
     var modal = document.getElementById('duplicateModal');
@@ -166,28 +152,10 @@ function showDuplicateModal(message, whatsappNumber) {
     var closeBtn = document.getElementById('btModalClose'); // may be null
     var overlay = document.getElementById('btModalOverlay'); // may be null
 
-    // If the server supplied an HTML message for duplicates, use it; otherwise
-    // fall back to the standard message (same wording as enhanced_submission.js)
-    var finalHtml;
-    if (message && message.trim()) {
-      // If server sent HTML, prefer it; otherwise escape plain text
-      // Heuristic: if contains angle-brackets treat as HTML
-      if (/<[a-z][\s\S]*>/i.test(message)) {
-        finalHtml = message;
-      } else {
-        // simple escape of HTML characters
-        finalHtml = message.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-      }
-    } else {
-      finalHtml = '<strong>It seems you already have an active account with this email.</strong><br>';
-      finalHtml += 'If you need help, contact us on WhatsApp: <a href="https://wa.me/8129048805" target="_blank">+91 8129048805</a>';
-    }
+    const finalMessage = "An account with this email already exists. Please contact admin for support.";
 
-    if (msgEl) {
-      // set innerHTML because enhanced_submission.js used HTML in the message
-      msgEl.innerHTML = finalHtml;
-    }
-
+    if (msgEl) msgEl.textContent = finalMessage;
+    
     if (waBtn) {
       var waLink = whatsappNumber ? 'https://wa.me/' + whatsappNumber.replace(/[^0-9]/g,'') : 'https://wa.me/8129048805';
       waBtn.setAttribute('href', waLink);
@@ -198,14 +166,19 @@ function showDuplicateModal(message, whatsappNumber) {
       return;
     }
 
-    // Ensure primary OK button is a plain button and has a single handler
+    // Ensure button is not a submit button to avoid form submission behavior
     if (okBtn) {
       try { okBtn.setAttribute('type', 'button'); } catch(e){}
+      // remove previous listener safely by cloning node (cheap way)
       var newOk = okBtn.cloneNode(true);
       okBtn.parentNode.replaceChild(newOk, okBtn);
       newOk.addEventListener('click', function onOkClick(e){
+        console.log('OK button clicked (direct handler).');
         closeDuplicateModal();
       });
+    } else {
+      // If okBtn not present, delegation will handle it (document click listener)
+      console.warn('OK button (#btModalOk) not found — using delegated handler as fallback.');
     }
 
     // wire close button if it exists
@@ -219,6 +192,7 @@ function showDuplicateModal(message, whatsappNumber) {
     // ensure overlay is clickable
     if (overlay) {
       overlay.style.pointerEvents = 'auto';
+      // remove/replace to avoid duplicate listeners
       var newOverlay = overlay.cloneNode(true);
       overlay.parentNode.replaceChild(newOverlay, overlay);
       newOverlay.addEventListener('click', function(){ closeDuplicateModal(); });
@@ -227,11 +201,26 @@ function showDuplicateModal(message, whatsappNumber) {
     // make modal visible and accessible
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden', 'false');
+    // ensure it can receive pointer events
     modal.style.pointerEvents = 'auto';
 
+    // Clear form-level status message (if present)
     if (statusEl) statusEl.textContent = '';
 
   } catch(e){
     console.error('showDuplicateModal error:', e);
+  }
+}
+
+function closeDuplicateModal(){
+  try {
+    var modal=document.getElementById('duplicateModal');
+    if(modal) {
+      modal.style.display='none';
+      modal.setAttribute('aria-hidden','true');
+      console.log('Modal closed');
+    }
+  } catch(e){
+    console.error('closeDuplicateModal error:', e);
   }
 }
