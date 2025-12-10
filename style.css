@@ -47,7 +47,7 @@ button{margin-top:12px;width:100%;padding:10px 12px;background:var(--accent);col
 .bt-modal-footer { margin-top:12px; font-size:12px; color:#666; }
 @media (max-width:480px){ .bt-modal-card{ padding:14px; } .bt-modal-logo{ width:48px;height:48px } }
 
-/* --- NEW LOADING ANIMATION STYLES --- */
+/* --- NEW LOADING SPINNER STYLES --- */
 .loading-box {
   display: none;
   align-items: center;
