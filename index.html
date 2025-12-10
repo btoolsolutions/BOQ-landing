@@ -55,6 +55,7 @@
     <span class="wa-text">Chat on WhatsApp</span>
   </a>
 
+  <!-- SUCCESS OVERLAY (restored exact text you preferred) -->
   <div id="successOverlay" class="success-overlay" aria-hidden="true">
     <div class="success-card" role="status" aria-live="polite">
       <div class="tick">
@@ -63,8 +64,8 @@
           <path class="tick-check" fill="none" d="M14 27 l8 8 l16 -18" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <h3>Thank you — demo access requested!</h3>
-      <p>We've received your request. We'll send demo access details to your Gmail shortly.</p>
+      <h3>Success! Your 24-hour trial is active.</h3>
+      <p>We've activated your 24-hour trial. Check your Gmail for details (and open your BOQ sheet when the link arrives).</p>
       <button id="closeSuccess">Close</button>
     </div>
   </div>
@@ -77,7 +78,7 @@
 
   <div class="bt-modal-card" role="dialog" aria-modal="true" aria-labelledby="btModalTitle">
 
-    <!-- ❌ CLOSE BUTTON REMOVED -->
+    <!-- Keep close button optional (your layout previously removed it) -->
     <!-- <button id="btModalClose" class="bt-modal-close" aria-label="Close">&times;</button> -->
 
     <div class="bt-modal-header">
@@ -85,8 +86,6 @@
     </div>
 
     <div class="bt-modal-body">
-
-      <!-- 🔴 TITLE UPDATED TO RED -->
       <h2 id="btModalTitle" style="color:red; font-weight:600;">
         Account already exists
       </h2>
