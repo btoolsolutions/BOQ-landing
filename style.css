@@ -48,3 +48,26 @@ button{margin-top:12px;width:100%;padding:10px 12px;background:var(--accent);col
 .bt-btn-primary { padding:8px 12px; border-radius:8px; border:none; background:#0b2545; color:#fff; font-weight:600; cursor:pointer; }
 .bt-modal-footer { margin-top:12px; font-size:12px; color:#666; }
 @media (max-width:480px){ .bt-modal-card{ padding:14px; } .bt-modal-logo{ width:48px;height:48px } }
+/* --- bTool inline submit spinner (add at end of style.css) --- */
+.btn-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-left: 10px;
+  vertical-align: middle;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.18);
+  border-top-color: #fff;
+  animation: bt-spin 0.9s linear infinite;
+}
+@keyframes bt-spin { to { transform: rotate(360deg); } }
+
+/* when button contains spinner, make text slightly dim */
+button .btn-text { vertical-align: middle; }
+button[disabled] .btn-text { opacity: 0.9; }
+
+/* small screen tweak so spinner doesn't wrap */
+@media (max-width:420px) {
+  .btn-spinner { margin-left: 8px; width:16px; height:16px; border-width:2px; }
+}
+
