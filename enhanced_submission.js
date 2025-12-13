@@ -57,7 +57,7 @@
         return;
       }
       if (data.success) {
-        var msg = 'Success! Your 24-hour trial is active.';
+        var msg = 'Success! Your 3-day trial is active.';
         if (data.sheetUrl) {
           msg += ' <a href="' + data.sheetUrl + '" target="_blank" style="color:inherit;text-decoration:underline;">Open your BOQ sheet</a>';
         }
